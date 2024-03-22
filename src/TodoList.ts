@@ -38,6 +38,7 @@ getTasks () {
 }
 
 updateTask (index: number, task: UpdateTask) {
+  if(!this.tasks[index]) {return}
   this.tasks[index] = {
     ...this.tasks[index],
     ...task
