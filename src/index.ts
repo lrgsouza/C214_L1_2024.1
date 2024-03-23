@@ -1,53 +1,58 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SimpleCurrencyConverter } from "./services/SimpleCurrencyConverter";
 import readline from 'readline'
 import { promisify } from 'util'
-import { Task } from './models/Task'
-import { ToDoList } from './TodoList'
-
 const reader = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
-
+    input: process.stdin,
+    output: process.stdout
+  })
 const userInput = promisify(reader.question).bind(reader)
 
 async function getUserInput (prompt: string): Promise<any> {
-  return await userInput(prompt)
+    return await userInput(prompt)
+}
+const axios = require('axios');
+
+class CurrencyConverterClient {
+    converter: SimpleCurrencyConverter;
+    constructor(converter: SimpleCurrencyConverter) {
+        this.converter = converter;
+    }
+
+    async convertCurrency(from: string, to: string, amount: number) {
+        try {
+            const result = await this.converter.convert(from, to, amount);
+            console.log(`${amount} ${from} equals ${result} ${to}`);
+        } catch (error) {
+            console.error('Error converting currency:');
+        }
+    }
 }
 
-const toDoList = new ToDoList()
+// Utilizando o SimpleCurrencyConverter com a instância padrão do Axios
+const converter = new SimpleCurrencyConverter(axios);
+const client = new CurrencyConverterClient(converter);
 
-async function addNewTask () {
-  const newTask: Task = {
-    title: '',
-    description: '',
-    targetDate: '',
-    type: '',
-    priority: ''
-  }
-  newTask.title = await getUserInput('Digite o título da tarefa: ')
-  newTask.description = await getUserInput('Digite a descrição da tarefa: ')
-  newTask.targetDate = await getUserInput('Digite a data limite da tarefa: ')
+// Mostrando o menu de opções
+const options = ['EUR', 'USD', 'BRL', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY'];
 
-  toDoList.add(newTask)
+async function showMenu() {
+    console.log('------------------------------------');
+    //declarando tipos
+    var optionFrom: string = '';
+    var optionTo: string = '';
+    var amount: string = '';
+    console.log('Digite "exit" para sair a qualquer momento');
+    console.log('Moedas disponíveis: ' + options);
+    optionFrom = await getUserInput('Escolha a moeda de origem: ');
+    if (optionFrom === 'exit') {process.exit();}
+    optionTo = await getUserInput('Escolha a moeda de destino: ');
+    if (optionTo === 'exit') {process.exit();}
+    amount = await getUserInput('Escolha a quantidade: ');
+    if (amount === 'exit') {process.exit();}
+    await client.convertCurrency(optionFrom, optionTo, parseFloat(amount));
+    console.log('------------------------------------');
+    showMenu();
 }
 
-async function startTodoList () {
-  const userChoise = await getUserInput('Digite 1 para adicionar uma tarefa ou 0 para sair: ')
+showMenu();
 
-  switch (userChoise) {
-    case '0':
-      reader.close()
-
-      return
-    case '1':
-      await addNewTask()
-      console.log('TAREFAS', toDoList.getTasks())
-      reader.close()
-      return
-    default:
-      reader.close()
-  }
-}
-
-startTodoList()
