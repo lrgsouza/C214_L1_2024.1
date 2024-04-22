@@ -1,4 +1,4 @@
-name: ci-github-actions
+name: ci-currency-converter
 
 on:
     push:
